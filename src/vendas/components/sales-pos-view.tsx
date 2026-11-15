@@ -202,7 +202,9 @@ export function SalesPosView() {
             size="sm"
             className="shrink-0 cursor-pointer"
           >
-            <Link href="/pedidos">Acompanhar em Pedidos</Link>
+            <Link href="/pedidos" transitionTypes={["nav-forward"]}>
+              Acompanhar em Pedidos
+            </Link>
           </Button>
         </div>
       ) : null}

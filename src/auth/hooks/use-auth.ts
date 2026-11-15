@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { addTransitionType, startTransition, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ROLE_DEFAULT_ROUTE,
@@ -20,7 +20,10 @@ export function useAuth() {
   const login = useCallback(
     (role: UserRole) => {
       loginService(role);
-      router.replace(ROLE_DEFAULT_ROUTE[role]);
+      startTransition(() => {
+        addTransitionType("nav-forward");
+        router.replace(ROLE_DEFAULT_ROUTE[role]);
+      });
     },
     [router],
   );
@@ -38,7 +41,10 @@ export function useAuth() {
 
   const logout = useCallback(() => {
     logoutService();
-    router.replace("/login");
+    startTransition(() => {
+      addTransitionType("nav-back");
+      router.replace("/login");
+    });
   }, [router]);
 
   return {

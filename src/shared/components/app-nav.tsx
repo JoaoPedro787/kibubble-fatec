@@ -1,5 +1,6 @@
 "use client";
 
+import { ViewTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, Boxes, ClipboardList, ShoppingBag } from "lucide-react";
@@ -40,7 +41,13 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-export function AppNav({ role }: { role: UserRole }) {
+export function AppNav({
+  role,
+  indicatorName = "nav-pill",
+}: {
+  role: UserRole;
+  indicatorName?: string;
+}) {
   const pathname = usePathname();
   const visibleItems = NAV_ITEMS.filter((item) => item.roles.includes(role));
 
@@ -55,16 +62,29 @@ export function AppNav({ role }: { role: UserRole }) {
           <Link
             key={item.href}
             href={item.href}
+            transitionTypes={["nav-lateral"]}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "relative inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               isActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                ? "bg-muted text-foreground font-semibold"
+                : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
             )}
           >
             <Icon className="size-4 shrink-0" aria-hidden="true" />
             <span>{item.label}</span>
+            {isActive ? (
+              <ViewTransition
+                name={indicatorName}
+                share="tab-underline"
+                default="none"
+              >
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-primary"
+                />
+              </ViewTransition>
+            ) : null}
           </Link>
         );
       })}

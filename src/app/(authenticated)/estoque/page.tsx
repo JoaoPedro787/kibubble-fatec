@@ -1,10 +1,10 @@
-import { AuthenticatedShell } from "@/shared/layouts/authenticated-shell";
+import { PageTransition } from "@/shared/components/page-transition";
 import { InventoryView } from "@/estoque/components/inventory-view";
 
 export default function EstoquePage() {
   return (
-    <AuthenticatedShell>
+    <PageTransition>
       <InventoryView />
-    </AuthenticatedShell>
+    </PageTransition>
   );
 }

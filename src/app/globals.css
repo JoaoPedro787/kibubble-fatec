@@ -109,5 +109,108 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+
+    ::view-transition-old(*),
+    ::view-transition-new(*),
+    ::view-transition-group(*) {
+      animation-duration: 0s !important;
+      animation-delay: 0s !important;
+    }
   }
+}
+
+:root {
+  --vt-duration-exit: 140ms;
+  --vt-duration-enter: 210ms;
+  --vt-duration-move: 260ms;
+}
+
+@keyframes vt-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes vt-slide-x {
+  from {
+    transform: translate3d(var(--vt-slide-x, 36px), 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Keep UI responsive during active view transitions */
+::view-transition {
+  pointer-events: none;
+}
+
+/* Live root: prevent full-page root cross-fade from competing with scoped transitions */
+::view-transition-old(root) {
+  display: none;
+}
+::view-transition-new(root) {
+  animation: none;
+}
+
+/* Persistent AppHeader isolation with backdrop-blur workaround */
+::view-transition-group(app-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(app-header) {
+  display: none;
+}
+::view-transition-new(app-header) {
+  animation: none;
+}
+
+/* Sliding underline indicator for lateral AppNav tabs */
+::view-transition-group(.tab-underline) {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.5, 0, 0.2, 1);
+  z-index: 110;
+}
+::view-transition-old(.tab-underline),
+::view-transition-new(.tab-underline) {
+  animation: none;
+  height: 100%;
+}
+
+/* Fade (lateral navigation & nav item enter/exit) */
+::view-transition-old(.fade-out) {
+  animation: var(--vt-duration-exit) ease-in both vt-fade reverse;
+}
+::view-transition-new(.fade-in) {
+  animation: var(--vt-duration-enter) ease-out calc(var(--vt-duration-exit) * 0.6) both vt-fade;
+}
+
+/* Directional navigation (hierarchical / login / logout) */
+::view-transition-old(.nav-forward) {
+  --vt-slide-x: -36px;
+  animation:
+    var(--vt-duration-exit) ease-in both vt-fade reverse,
+    var(--vt-duration-move) cubic-bezier(0.22, 1, 0.36, 1) both vt-slide-x reverse;
+}
+::view-transition-new(.nav-forward) {
+  --vt-slide-x: 36px;
+  animation:
+    var(--vt-duration-enter) ease-out calc(var(--vt-duration-exit) * 0.6) both vt-fade,
+    var(--vt-duration-move) cubic-bezier(0.22, 1, 0.36, 1) both vt-slide-x;
+}
+
+::view-transition-old(.nav-back) {
+  --vt-slide-x: 36px;
+  animation:
+    var(--vt-duration-exit) ease-in both vt-fade reverse,
+    var(--vt-duration-move) cubic-bezier(0.22, 1, 0.36, 1) both vt-slide-x reverse;
+}
+::view-transition-new(.nav-back) {
+  --vt-slide-x: -36px;
+  animation:
+    var(--vt-duration-enter) ease-out calc(var(--vt-duration-exit) * 0.6) both vt-fade,
+    var(--vt-duration-move) cubic-bezier(0.22, 1, 0.36, 1) both vt-slide-x;
 }

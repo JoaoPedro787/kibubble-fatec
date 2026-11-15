@@ -33,11 +33,15 @@ export function AppHeader() {
   const homeHref = ROLE_DEFAULT_ROUTE[session.role];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
+    <header
+      style={{ viewTransitionName: "app-header" }}
+      className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85"
+    >
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-6">
           <Link
             href={homeHref}
+            transitionTypes={["nav-lateral"]}
             className="flex items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <span className="flex size-8 items-center justify-center rounded-md border border-border bg-primary text-primary-foreground">
@@ -49,7 +53,7 @@ export function AppHeader() {
           </Link>
 
           <div className="hidden md:block">
-            <AppNav role={session.role} />
+            <AppNav role={session.role} indicatorName="nav-pill-desktop" />
           </div>
         </div>
 
@@ -139,7 +143,7 @@ export function AppHeader() {
       </div>
 
       <div className="border-t border-border px-4 py-2 md:hidden">
-        <AppNav role={session.role} />
+        <AppNav role={session.role} indicatorName="nav-pill-mobile" />
       </div>
     </header>
   );

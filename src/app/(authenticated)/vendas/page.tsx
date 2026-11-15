@@ -1,10 +1,10 @@
-import { AuthenticatedShell } from "@/shared/layouts/authenticated-shell";
+import { PageTransition } from "@/shared/components/page-transition";
 import { SalesPosView } from "@/vendas/components/sales-pos-view";
 
 export default function VendasPage() {
   return (
-    <AuthenticatedShell>
+    <PageTransition>
       <SalesPosView />
-    </AuthenticatedShell>
+    </PageTransition>
   );
 }
