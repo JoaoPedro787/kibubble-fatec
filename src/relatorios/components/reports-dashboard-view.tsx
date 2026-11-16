@@ -28,6 +28,13 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -102,8 +109,23 @@ export function ReportsDashboardView() {
     },
   ];
 
+  const [activeTab, setActiveTab] = useState("visao-geral");
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    if (
+      tabsRef.current &&
+      typeof tabsRef.current.scrollIntoView === "function"
+    ) {
+      tabsRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
           Relatórios Gerenciais
@@ -207,21 +229,30 @@ export function ReportsDashboardView() {
 
       <Tabs
         ref={tabsRef}
-        defaultValue="visao-geral"
+        value={activeTab}
         className="space-y-4"
-        onValueChange={() => {
-          if (
-            tabsRef.current &&
-            typeof tabsRef.current.scrollIntoView === "function"
-          ) {
-            tabsRef.current.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
-            });
-          }
-        }}
+        onValueChange={handleTabChange}
       >
-        <TabsList>
+        <div className="sm:hidden">
+          <Select value={activeTab} onValueChange={handleTabChange}>
+            <SelectTrigger
+              aria-label="Selecionar visualização do relatório"
+              className="w-full cursor-pointer"
+            >
+              <SelectValue placeholder="Selecione a visualização" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="visao-geral" className="cursor-pointer">
+                Faturamento & Ranking
+              </SelectItem>
+              <SelectItem value="historico" className="cursor-pointer">
+                Histórico de Vendas ({snapshot.history.length})
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <TabsList className="hidden sm:inline-flex">
           <TabsTrigger value="visao-geral" className="cursor-pointer">
             Faturamento & Ranking
           </TabsTrigger>
@@ -230,8 +261,8 @@ export function ReportsDashboardView() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="visao-geral" className="grid gap-6 lg:grid-cols-12">
-          <Card className="border-border shadow-none lg:col-span-5">
+        <TabsContent value="visao-geral" className="grid min-w-0 gap-6 lg:grid-cols-12">
+          <Card className="min-w-0 overflow-hidden border-border shadow-none lg:col-span-5">
             <CardHeader className="border-b border-border pb-4">
               <CardTitle className="text-base font-semibold">
                 Comparativo de Faturamento (3A)
@@ -245,7 +276,22 @@ export function ReportsDashboardView() {
                 const widthPct = Math.round(
                   (bar.value / maxPeriodRevenue) * 100,
                 );
-                return (
+                const [activeTab, setActiveTab] = useState("visao-geral");
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    if (
+      tabsRef.current &&
+      typeof tabsRef.current.scrollIntoView === "function"
+    ) {
+      tabsRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
+
+  return (
                   <div key={bar.label} className="space-y-2">
                     <div className="flex items-baseline justify-between gap-2 text-sm">
                       <span className="font-medium">{bar.label}</span>
@@ -270,7 +316,7 @@ export function ReportsDashboardView() {
             </CardContent>
           </Card>
 
-          <Card className="border-border shadow-none lg:col-span-7">
+          <Card className="min-w-0 overflow-hidden border-border shadow-none lg:col-span-7">
             <CardHeader className="border-b border-border pb-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -285,7 +331,7 @@ export function ReportsDashboardView() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="pt-5">
+            <CardContent className="overflow-x-auto pt-5">
               {snapshot.topProducts.length === 0 ? (
                 <p className="py-6 text-center text-sm text-muted-foreground">
                   Nenhuma venda registrada para compor o ranking.
@@ -298,7 +344,22 @@ export function ReportsDashboardView() {
                     );
                     const isSelected =
                       effectiveSelectedProductId === product.productId;
-                    return (
+                    const [activeTab, setActiveTab] = useState("visao-geral");
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    if (
+      tabsRef.current &&
+      typeof tabsRef.current.scrollIntoView === "function"
+    ) {
+      tabsRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
+
+  return (
                       <li key={product.productId}>
                         <button
                           type="button"
@@ -394,7 +455,7 @@ export function ReportsDashboardView() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="pt-5">
+              <CardContent className="overflow-x-auto pt-5">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <div className="rounded-md border border-border p-3.5">
                     <p className="text-xs text-muted-foreground">Hoje</p>
@@ -442,8 +503,8 @@ export function ReportsDashboardView() {
           ) : null}
         </TabsContent>
 
-        <TabsContent value="historico">
-          <Card className="border-border shadow-none">
+        <TabsContent value="historico" className="min-w-0">
+          <Card className="min-w-0 overflow-hidden border-border shadow-none">
             <CardHeader className="border-b border-border pb-4">
               <CardTitle className="text-base font-semibold">
                 Histórico Completo de Vendas (3D)
@@ -452,7 +513,7 @@ export function ReportsDashboardView() {
                 Listagem cronológica da venda mais recente para a mais antiga.
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="overflow-x-auto p-0">
               {snapshot.history.length === 0 ? (
                 <div className="p-8 text-center text-sm text-muted-foreground">
                   Nenhuma venda registrada até o momento.
