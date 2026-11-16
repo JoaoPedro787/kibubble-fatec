@@ -35,10 +35,10 @@ export function AppHeader() {
   return (
     <header
       style={{ viewTransitionName: "app-header" }}
-      className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85"
+      className="sticky top-0 z-30 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85"
     >
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-6">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8">
+        <div className="flex min-w-0 items-center gap-4 sm:gap-6">
           <Link
             href={homeHref}
             transitionTypes={["nav-lateral"]}
@@ -64,7 +64,7 @@ export function AppHeader() {
           >
             <SelectTrigger
               aria-label="Perfil de acesso"
-              className="h-9 w-[142px] text-xs font-medium cursor-pointer"
+              className="h-9 w-[124px] sm:w-[142px] text-xs font-medium cursor-pointer"
             >
               <SelectValue placeholder="Perfil" />
             </SelectTrigger>
@@ -142,7 +142,7 @@ export function AppHeader() {
         </div>
       </div>
 
-      <div className="border-t border-border px-4 py-2 md:hidden">
+      <div className="flex h-11 items-center overflow-x-auto border-t border-border px-4 md:hidden">
         <AppNav role={session.role} indicatorName="nav-pill-mobile" />
       </div>
     </header>

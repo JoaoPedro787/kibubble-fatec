@@ -10,9 +10,9 @@ export function AuthenticatedShell({
 }) {
   return (
     <RouteGuard>
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <div className="min-h-screen flex flex-col overflow-x-clip bg-background text-foreground">
         <AppHeader />
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-7xl min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8">
           {children}
         </main>
       </div>
