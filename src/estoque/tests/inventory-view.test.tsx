@@ -24,7 +24,9 @@ describe("InventoryView (/estoque)", () => {
     );
 
     // Seed starts with Creme Cheese Foam at 180g <= 200g minThreshold
-    expect(screen.getByRole("region", { name: "Alertas de estoque baixo" })).toBeDefined();
+    expect(
+      screen.getByRole("region", { name: "Alertas de estoque baixo" }),
+    ).toBeDefined();
 
     // Open edit dialog for first ingredient (Pérolas de Tapioca Preta)
     const updateButtons = screen.getAllByRole("button", { name: /Atualizar/i });
@@ -43,7 +45,29 @@ describe("InventoryView (/estoque)", () => {
     const updated = readStore(window.localStorage).ingredients[0];
     expect(updated.quantity).toBe(100);
     expect(
-      screen.getByRole("region", { name: "Alertas de estoque baixo" }).textContent,
+      screen.getByRole("region", { name: "Alertas de estoque baixo" })
+        .textContent,
     ).toContain("Pérolas de Tapioca Preta");
+  });
+
+  it("navigates directly to the ingredient row when clicking a low-stock alert button", () => {
+    const scrollIntoViewMock = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoViewMock;
+
+    render(
+      <AppStoreProvider>
+        <InventoryView />
+      </AppStoreProvider>,
+    );
+
+    const goToBtn = screen.getByRole("button", {
+      name: "Ir para Creme Cheese Foam",
+    });
+    fireEvent.click(goToBtn);
+
+    expect(scrollIntoViewMock).toHaveBeenCalledTimes(1);
+    const cell = screen.getByRole("cell", { name: "Creme Cheese Foam" });
+    const row = cell.closest("tr");
+    expect(row?.getAttribute("data-highlighted")).toBe("true");
   });
 });

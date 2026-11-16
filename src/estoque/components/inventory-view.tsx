@@ -1,7 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, Pencil } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  AlertTriangle,
+  ArrowDownRight,
+  CheckCircle2,
+  Pencil,
+} from "lucide-react";
 import {
   getLowStockIngredients,
   isLowStock,
@@ -48,6 +53,37 @@ export function InventoryView() {
   const [quantityInput, setQuantityInput] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [highlightedIngredientId, setHighlightedIngredientId] = useState<
+    string | null
+  >(null);
+  const rowRefs = useRef<Map<string, HTMLTableRowElement>>(new Map());
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  useEffect(() => {
+    return () => {
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  function handleGoToIngredient(ingredientId: string) {
+    const row = rowRefs.current.get(ingredientId);
+    if (row && typeof row.scrollIntoView === "function") {
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    setHighlightedIngredientId(ingredientId);
+    if (highlightTimeoutRef.current) {
+      clearTimeout(highlightTimeoutRef.current);
+    }
+    highlightTimeoutRef.current = setTimeout(() => {
+      setHighlightedIngredientId((current) =>
+        current === ingredientId ? null : current,
+      );
+    }, 2000);
+  }
 
   const lowStockList = useMemo(
     () => getLowStockIngredients(store.ingredients),
@@ -131,22 +167,40 @@ export function InventoryView() {
             <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <AlertTriangle className="size-4" aria-hidden="true" />
             </div>
-            <div className="space-y-1">
+            <div className="flex-1 space-y-2">
               <p className="text-sm font-semibold">
                 {lowStockList.length}{" "}
                 {lowStockList.length === 1
                   ? "ingrediente atingiu o limite mínimo"
                   : "ingredientes atingiram o limite mínimo"}
               </p>
-              <p className="text-xs text-muted-foreground">
-                Reabasteça:{" "}
-                {lowStockList
-                  .map(
-                    (ing) =>
-                      `${ing.name} (${ing.quantity} ${ing.unit} / mín. ${ing.minThreshold} ${ing.unit})`,
-                  )
-                  .join("; ")}
-              </p>
+              <ul className="space-y-2">
+                {lowStockList.map((ing) => (
+                  <li
+                    key={ing.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-2 text-xs"
+                  >
+                    <span className="font-medium text-foreground">
+                      {ing.name}{" "}
+                      <span className="font-mono text-muted-foreground tabular-nums">
+                        ({ing.quantity} {ing.unit} / mín. {ing.minThreshold}{" "}
+                        {ing.unit})
+                      </span>
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="cursor-pointer"
+                      aria-label={`Ir para ${ing.name}`}
+                      onClick={() => handleGoToIngredient(ing.id)}
+                    >
+                      <span>Ir para o ingrediente</span>
+                      <ArrowDownRight className="size-3.5" aria-hidden="true" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
@@ -197,7 +251,24 @@ export function InventoryView() {
                   return (
                     <TableRow
                       key={ingredient.id}
-                      className={cn(low ? "bg-muted/50" : undefined)}
+                      ref={(el) => {
+                        if (el) {
+                          rowRefs.current.set(ingredient.id, el);
+                        } else {
+                          rowRefs.current.delete(ingredient.id);
+                        }
+                      }}
+                      data-highlighted={
+                        highlightedIngredientId === ingredient.id
+                          ? "true"
+                          : undefined
+                      }
+                      className={cn(
+                        low ? "bg-muted/50" : undefined,
+                        highlightedIngredientId === ingredient.id
+                          ? "bg-muted ring-2 ring-inset ring-foreground transition-colors"
+                          : undefined,
+                      )}
                     >
                       <TableCell className="font-medium">
                         {ingredient.name}
