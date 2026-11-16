@@ -54,7 +54,6 @@ export function SalesPosView() {
   const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("PIX");
-  const [simulateFailure, setSimulateFailure] = useState(false);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
 
@@ -130,7 +129,6 @@ export function SalesPosView() {
       items: cart,
       paymentMethod,
       operatorRole: role,
-      simulateFailure,
     });
 
     if (!result.ok) {
@@ -139,7 +137,6 @@ export function SalesPosView() {
     }
 
     setCart([]);
-    setSimulateFailure(false);
     setConfirmedOrder(result.order);
   }
 
@@ -437,23 +434,6 @@ export function SalesPosView() {
                     );
                   })}
                 </div>
-              </div>
-
-              <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/40 px-3 py-2.5">
-                <Label
-                  htmlFor="simulate-payment-failure"
-                  className="text-xs font-medium cursor-pointer"
-                >
-                  Simular falha de pagamento (5A)
-                </Label>
-                <Switch
-                  id="simulate-payment-failure"
-                  checked={simulateFailure}
-                  onCheckedChange={(checked) => {
-                    setSimulateFailure(checked);
-                    setErrorBanner(null);
-                  }}
-                />
               </div>
 
               {errorBanner ? (

@@ -32,20 +32,6 @@ describe("SalesPosView (/vendas)", () => {
 
     expect(screen.getByText(/1 item/i)).toBeDefined();
 
-    // Enable simulated 5A failure
-    const failureSwitch = screen.getByRole("switch", {
-      name: /Simular falha de pagamento/i,
-    });
-    fireEvent.click(failureSwitch);
-    fireEvent.click(screen.getByRole("button", { name: "Finalizar Venda" }));
-
-    expect(screen.getByRole("alert").textContent).toContain("Pagamento não autorizado");
-    // Cart stays intact
-    expect(screen.getByText(/1 item/i)).toBeDefined();
-    expect(readStore(window.localStorage).sales.length).toBe(initialSalesCount);
-
-    // Disable failure simulation and complete sale
-    fireEvent.click(failureSwitch);
     fireEvent.click(screen.getByRole("button", { name: "Finalizar Venda" }));
 
     expect(screen.getByRole("status").textContent).toContain("Venda registrada com sucesso");

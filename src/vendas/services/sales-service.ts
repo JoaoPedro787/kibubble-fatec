@@ -32,7 +32,6 @@ export interface CheckoutInput {
   items: CartItem[];
   paymentMethod: PaymentMethod;
   operatorRole: UserRole;
-  simulateFailure?: boolean;
 }
 
 export type CheckoutResult =
@@ -254,15 +253,6 @@ export function processCheckout(
       code: "INSUFFICIENT_STOCK",
       message: `Ingredientes insuficientes para concluir a venda: ${missingIngredients.join(", ")}.`,
       missingIngredients,
-    };
-  }
-
-  if (input.simulateFailure) {
-    return {
-      ok: false,
-      code: "PAYMENT_UNAUTHORIZED",
-      message:
-        "Pagamento não autorizado (5A). Selecione outra forma de pagamento ou tente novamente.",
     };
   }
 

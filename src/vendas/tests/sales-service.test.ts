@@ -48,30 +48,6 @@ describe("salesService", () => {
     expect(totals.lines).toHaveLength(2);
   });
 
-  it("rolls back without mutating stock, orders, or sales on payment failure (5A)", () => {
-    const before = readStore(window.localStorage);
-
-    const result = processCheckout(
-      {
-        items: [{ productId: "prod-classic-milk", quantity: 1 }],
-        paymentMethod: "Cartão de Crédito",
-        operatorRole: "Colaborador",
-        simulateFailure: true,
-      },
-      window.localStorage,
-    );
-
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.code).toBe("PAYMENT_UNAUTHORIZED");
-    }
-
-    const after = readStore(window.localStorage);
-    expect(after.sales.length).toBe(before.sales.length);
-    expect(after.orders.length).toBe(before.orders.length);
-    expect(after.ingredients).toEqual(before.ingredients);
-  });
-
   it("rejects checkout when stock is insufficient (8A)", () => {
     updateStore((current) => ({
       ...current,
