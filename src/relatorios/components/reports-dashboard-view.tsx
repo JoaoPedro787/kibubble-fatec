@@ -1,17 +1,25 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   BarChart3,
   Calendar,
+  ChevronRight,
+  Package,
   Receipt,
   TrendingUp,
   Trophy,
+  X,
 } from "lucide-react";
-import { computeReportsSnapshot } from "@/relatorios/utils/analytics";
+import {
+  calculateProductRevenueBreakdown,
+  computeReportsSnapshot,
+} from "@/relatorios/utils/analytics";
 import { useAppStore } from "@/shared/contexts/app-store-provider";
 import { formatCurrencyBRL, formatDateTimeBR } from "@/shared/libs/formatters";
+import { cn } from "@/shared/libs/cn";
 import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
@@ -27,15 +35,39 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/shared/components/ui/tabs";
 
 export function ReportsDashboardView() {
   const { store } = useAppStore();
+  const [selectedProductId, setSelectedProductId] = useState<
+    string | null | undefined
+  >(undefined);
+  const tabsRef = useRef<HTMLDivElement | null>(null);
 
   const snapshot = useMemo(
     () => computeReportsSnapshot(store.sales),
     [store.sales],
   );
+
+  const effectiveSelectedProductId =
+    selectedProductId === undefined
+      ? (snapshot.topProducts[0]?.productId ?? null)
+      : selectedProductId;
+
+  const selectedProductMetrics = useMemo(() => {
+    if (!effectiveSelectedProductId) return null;
+    const metrics = calculateProductRevenueBreakdown(
+      store.sales,
+      effectiveSelectedProductId,
+    );
+    if (!metrics.productName) return null;
+    return metrics;
+  }, [store.sales, effectiveSelectedProductId]);
 
   const maxPeriodRevenue = Math.max(
     snapshot.revenue.daily,
@@ -77,7 +109,8 @@ export function ReportsDashboardView() {
           Relatórios Gerenciais
         </h1>
         <p className="text-sm text-muted-foreground">
-          Indicadores de faturamento, ticket médio, ranking de produtos e histórico completo de vendas.
+          Indicadores de faturamento, ticket médio, ranking de produtos e
+          histórico completo de vendas.
         </p>
       </div>
 
@@ -90,7 +123,10 @@ export function ReportsDashboardView() {
             <CardTitle className="text-xs font-medium text-muted-foreground">
               Faturamento Diário (3A)
             </CardTitle>
-            <Calendar className="size-4 text-muted-foreground" aria-hidden="true" />
+            <Calendar
+              className="size-4 text-muted-foreground"
+              aria-hidden="true"
+            />
           </CardHeader>
           <CardContent>
             <p className="font-mono text-2xl font-semibold tabular-nums">
@@ -108,7 +144,10 @@ export function ReportsDashboardView() {
             <CardTitle className="text-xs font-medium text-muted-foreground">
               Faturamento Semanal (3A)
             </CardTitle>
-            <TrendingUp className="size-4 text-muted-foreground" aria-hidden="true" />
+            <TrendingUp
+              className="size-4 text-muted-foreground"
+              aria-hidden="true"
+            />
           </CardHeader>
           <CardContent>
             <p className="font-mono text-2xl font-semibold tabular-nums">
@@ -116,7 +155,8 @@ export function ReportsDashboardView() {
             </p>
             <p className="mt-1 font-mono text-xs text-muted-foreground tabular-nums">
               {snapshot.revenue.weeklyCount}{" "}
-              {snapshot.revenue.weeklyCount === 1 ? "venda" : "vendas"} nos últimos 7 dias
+              {snapshot.revenue.weeklyCount === 1 ? "venda" : "vendas"} nos
+              últimos 7 dias
             </p>
           </CardContent>
         </Card>
@@ -126,7 +166,10 @@ export function ReportsDashboardView() {
             <CardTitle className="text-xs font-medium text-muted-foreground">
               Faturamento Mensal (3A)
             </CardTitle>
-            <BarChart3 className="size-4 text-muted-foreground" aria-hidden="true" />
+            <BarChart3
+              className="size-4 text-muted-foreground"
+              aria-hidden="true"
+            />
           </CardHeader>
           <CardContent>
             <p className="font-mono text-2xl font-semibold tabular-nums">
@@ -134,12 +177,14 @@ export function ReportsDashboardView() {
             </p>
             <p className="mt-1 font-mono text-xs text-muted-foreground tabular-nums">
               {snapshot.revenue.monthlyCount}{" "}
-              {snapshot.revenue.monthlyCount === 1 ? "venda no mês" : "vendas no mês"}
+              {snapshot.revenue.monthlyCount === 1
+                ? "venda no mês"
+                : "vendas no mês"}
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-foreground shadow-none">
+        <Card className="border-border shadow-none">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-medium text-muted-foreground">
               Ticket Médio (3B)
@@ -160,7 +205,22 @@ export function ReportsDashboardView() {
         </Card>
       </section>
 
-      <Tabs defaultValue="visao-geral" className="space-y-4">
+      <Tabs
+        ref={tabsRef}
+        defaultValue="visao-geral"
+        className="space-y-4"
+        onValueChange={() => {
+          if (
+            tabsRef.current &&
+            typeof tabsRef.current.scrollIntoView === "function"
+          ) {
+            tabsRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        }}
+      >
         <TabsList>
           <TabsTrigger value="visao-geral" className="cursor-pointer">
             Faturamento & Ranking
@@ -182,7 +242,9 @@ export function ReportsDashboardView() {
             </CardHeader>
             <CardContent className="space-y-5 pt-5">
               {periodBars.map((bar) => {
-                const widthPct = Math.round((bar.value / maxPeriodRevenue) * 100);
+                const widthPct = Math.round(
+                  (bar.value / maxPeriodRevenue) * 100,
+                );
                 return (
                   <div key={bar.label} className="space-y-2">
                     <div className="flex items-baseline justify-between gap-2 text-sm">
@@ -194,7 +256,9 @@ export function ReportsDashboardView() {
                     <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
                       <div
                         className={`h-full rounded-full ${bar.barClass}`}
-                        style={{ width: `${bar.value > 0 ? Math.max(widthPct, 4) : 0}%` }}
+                        style={{
+                          width: `${bar.value > 0 ? Math.max(widthPct, 4) : 0}%`,
+                        }}
                       />
                     </div>
                     <p className="font-mono text-xs text-muted-foreground tabular-nums">
@@ -215,7 +279,8 @@ export function ReportsDashboardView() {
                     <span>Produtos Mais Vendidos (3C)</span>
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Ranking ordenado por unidades vendidas.
+                    Ranking ordenado por unidades vendidas. Clique em um produto
+                    para ver suas métricas.
                   </CardDescription>
                 </div>
               </div>
@@ -226,40 +291,65 @@ export function ReportsDashboardView() {
                   Nenhuma venda registrada para compor o ranking.
                 </p>
               ) : (
-                <ul className="space-y-4">
+                <ul className="space-y-2.5">
                   {snapshot.topProducts.map((product, index) => {
                     const pct = Math.round(
                       (product.unitsSold / maxProductUnits) * 100,
                     );
+                    const isSelected =
+                      effectiveSelectedProductId === product.productId;
                     return (
-                      <li key={product.productId} className="space-y-1.5">
-                        <div className="flex items-center justify-between gap-3 text-sm">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <Badge
-                              variant={index === 0 ? "default" : "outline"}
-                              className="font-mono text-xs tabular-nums"
-                            >
-                              #{index + 1}
-                            </Badge>
-                            <span className="truncate font-medium">
-                              {product.productName}
-                            </span>
+                      <li key={product.productId}>
+                        <button
+                          type="button"
+                          aria-pressed={isSelected}
+                          onClick={() =>
+                            setSelectedProductId(
+                              isSelected ? null : product.productId,
+                            )
+                          }
+                          className={cn(
+                            "group w-full cursor-pointer space-y-1.5 rounded-md border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground",
+                            isSelected
+                              ? "border-foreground bg-muted/70"
+                              : "border-border bg-background hover:border-foreground/50 hover:bg-muted/40",
+                          )}
+                        >
+                          <div className="flex items-center justify-between gap-3 text-sm">
+                            <div className="flex min-w-0 items-center gap-2.5">
+                              <Badge
+                                variant={index === 0 ? "default" : "outline"}
+                                className="font-mono text-xs tabular-nums"
+                              >
+                                #{index + 1}
+                              </Badge>
+                              <span className="truncate font-medium">
+                                {product.productName}
+                              </span>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-2.5 font-mono text-xs tabular-nums">
+                              <span className="text-muted-foreground">
+                                {product.unitsSold} un.
+                              </span>
+                              <span className="font-semibold text-foreground">
+                                {formatCurrencyBRL(product.revenue)}
+                              </span>
+                              <ChevronRight
+                                className={cn(
+                                  "size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground",
+                                  isSelected && "rotate-90 text-foreground",
+                                )}
+                                aria-hidden="true"
+                              />
+                            </div>
                           </div>
-                          <div className="flex items-center gap-3 shrink-0 font-mono text-xs tabular-nums">
-                            <span className="text-muted-foreground">
-                              {product.unitsSold} un.
-                            </span>
-                            <span className="font-semibold text-foreground">
-                              {formatCurrencyBRL(product.revenue)}
-                            </span>
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                            <div
+                              className="h-full rounded-full bg-foreground"
+                              style={{ width: `${Math.max(pct, 4)}%` }}
+                            />
                           </div>
-                        </div>
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                          <div
-                            className="h-full rounded-full bg-foreground"
-                            style={{ width: `${Math.max(pct, 4)}%` }}
-                          />
-                        </div>
+                        </button>
                       </li>
                     );
                   })}
@@ -267,6 +357,89 @@ export function ReportsDashboardView() {
               )}
             </CardContent>
           </Card>
+
+          {selectedProductMetrics ? (
+            <Card
+              role="region"
+              aria-label={`Métricas de ${selectedProductMetrics.productName}`}
+              className="border-border shadow-none lg:col-span-12"
+            >
+              <CardHeader className="border-b border-border pb-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                      <Package className="size-4" aria-hidden="true" />
+                      <span>
+                        Faturamento do Produto:{" "}
+                        {selectedProductMetrics.productName}
+                      </span>
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      {selectedProductMetrics.totalUnits} un. vendidas em{" "}
+                      {selectedProductMetrics.salesCount}{" "}
+                      {selectedProductMetrics.salesCount === 1
+                        ? "venda"
+                        : "vendas"}
+                    </CardDescription>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="cursor-pointer gap-1.5"
+                    onClick={() => setSelectedProductId(null)}
+                  >
+                    <X className="size-3.5" aria-hidden="true" />
+                    <span>Limpar seleção</span>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-5">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="rounded-md border border-border p-3.5">
+                    <p className="text-xs text-muted-foreground">Hoje</p>
+                    <p className="mt-1 font-mono text-xl font-semibold tabular-nums">
+                      {formatCurrencyBRL(selectedProductMetrics.daily)}
+                    </p>
+                    <p className="mt-0.5 font-mono text-xs text-muted-foreground tabular-nums">
+                      {selectedProductMetrics.dailyUnits} un.
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-border p-3.5">
+                    <p className="text-xs text-muted-foreground">
+                      Últimos 7 dias
+                    </p>
+                    <p className="mt-1 font-mono text-xl font-semibold tabular-nums">
+                      {formatCurrencyBRL(selectedProductMetrics.weekly)}
+                    </p>
+                    <p className="mt-0.5 font-mono text-xs text-muted-foreground tabular-nums">
+                      {selectedProductMetrics.weeklyUnits} un.
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-border p-3.5">
+                    <p className="text-xs text-muted-foreground">Mês atual</p>
+                    <p className="mt-1 font-mono text-xl font-semibold tabular-nums">
+                      {formatCurrencyBRL(selectedProductMetrics.monthly)}
+                    </p>
+                    <p className="mt-0.5 font-mono text-xs text-muted-foreground tabular-nums">
+                      {selectedProductMetrics.monthlyUnits} un.
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-border bg-muted/40 p-3.5">
+                    <p className="text-xs text-muted-foreground">
+                      Total acumulado
+                    </p>
+                    <p className="mt-1 font-mono text-xl font-semibold tabular-nums">
+                      {formatCurrencyBRL(selectedProductMetrics.totalRevenue)}
+                    </p>
+                    <p className="mt-0.5 font-mono text-xs text-muted-foreground tabular-nums">
+                      {selectedProductMetrics.totalUnits} un.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
         </TabsContent>
 
         <TabsContent value="historico">
@@ -309,7 +482,9 @@ export function ReportsDashboardView() {
                         </TableCell>
                         <TableCell className="text-sm">
                           {sale.items
-                            .map((item) => `${item.quantity}x ${item.productName}`)
+                            .map(
+                              (item) => `${item.quantity}x ${item.productName}`,
+                            )
                             .join(", ")}
                         </TableCell>
                         <TableCell>

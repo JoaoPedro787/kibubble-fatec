@@ -18,6 +18,20 @@ export interface TopProductRank {
   revenue: number;
 }
 
+export interface ProductRevenueBreakdown {
+  productId: string;
+  productName: string;
+  daily: number;
+  weekly: number;
+  monthly: number;
+  totalRevenue: number;
+  dailyUnits: number;
+  weeklyUnits: number;
+  monthlyUnits: number;
+  totalUnits: number;
+  salesCount: number;
+}
+
 export interface ReportsSnapshot {
   revenue: RevenueBreakdown;
   averageTicket: number;
@@ -119,6 +133,81 @@ export function calculateTopSellingProducts(sales: Sale[]): TopProductRank[] {
     if (b.revenue !== a.revenue) return b.revenue - a.revenue;
     return a.productName.localeCompare(b.productName, "pt-BR");
   });
+}
+
+export function calculateProductRevenueBreakdown(
+  sales: Sale[],
+  productId: string,
+  now: Date = new Date(),
+): ProductRevenueBreakdown {
+  const todayStart = startOfLocalDay(now).getTime();
+  const weekStart = todayStart - 6 * 24 * 60 * 60 * 1000;
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+
+  let productName = "";
+  let daily = 0;
+  let weekly = 0;
+  let monthly = 0;
+  let totalRevenue = 0;
+  let dailyUnits = 0;
+  let weeklyUnits = 0;
+  let monthlyUnits = 0;
+  let totalUnits = 0;
+  let salesCount = 0;
+
+  for (const sale of sales) {
+    const saleDate = new Date(sale.createdAt);
+    const saleTime = saleDate.getTime();
+    if (Number.isNaN(saleTime)) continue;
+
+    let saleUnits = 0;
+    let saleRevenue = 0;
+    for (const item of sale.items) {
+      if (item.productId !== productId) continue;
+      if (!productName) productName = item.productName;
+      saleUnits += item.quantity;
+      saleRevenue = roundCurrency(saleRevenue + item.subtotal);
+    }
+
+    if (saleUnits === 0 && saleRevenue === 0) continue;
+
+    salesCount += 1;
+    totalUnits += saleUnits;
+    totalRevenue = roundCurrency(totalRevenue + saleRevenue);
+
+    if (saleTime >= todayStart) {
+      daily = roundCurrency(daily + saleRevenue);
+      dailyUnits += saleUnits;
+    }
+
+    if (saleTime >= weekStart) {
+      weekly = roundCurrency(weekly + saleRevenue);
+      weeklyUnits += saleUnits;
+    }
+
+    if (
+      saleDate.getFullYear() === currentYear &&
+      saleDate.getMonth() === currentMonth
+    ) {
+      monthly = roundCurrency(monthly + saleRevenue);
+      monthlyUnits += saleUnits;
+    }
+  }
+
+  return {
+    productId,
+    productName,
+    daily,
+    weekly,
+    monthly,
+    totalRevenue,
+    dailyUnits,
+    weeklyUnits,
+    monthlyUnits,
+    totalUnits,
+    salesCount,
+  };
 }
 
 export function sortSalesChronologically(sales: Sale[]): Sale[] {

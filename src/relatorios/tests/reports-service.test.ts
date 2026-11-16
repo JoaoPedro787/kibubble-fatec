@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   calculateAverageTicket,
+  calculateProductRevenueBreakdown,
   calculateRevenueBreakdown,
   calculateTopSellingProducts,
   computeReportsSnapshot,
@@ -143,5 +144,27 @@ describe("reportsService & analytics calculators", () => {
       "s-month-only",
       "s-old-month",
     ]);
+
+    // Individual product revenue breakdown for Classic Boba ("p-a")
+    const productBreakdown = calculateProductRevenueBreakdown(sales, "p-a", now);
+    expect(productBreakdown.productName).toBe("Classic Boba");
+    expect(productBreakdown.daily).toBe(40);
+    expect(productBreakdown.dailyUnits).toBe(2);
+    expect(productBreakdown.weekly).toBe(80);
+    expect(productBreakdown.weeklyUnits).toBe(4);
+    expect(productBreakdown.monthly).toBe(80);
+    expect(productBreakdown.monthlyUnits).toBe(4);
+    expect(productBreakdown.totalRevenue).toBe(100);
+    expect(productBreakdown.totalUnits).toBe(5);
+    expect(productBreakdown.salesCount).toBe(3);
+
+    const emptyProduct = calculateProductRevenueBreakdown(
+      sales,
+      "non-existent",
+      now,
+    );
+    expect(emptyProduct.totalRevenue).toBe(0);
+    expect(emptyProduct.totalUnits).toBe(0);
+    expect(emptyProduct.salesCount).toBe(0);
   });
 });
