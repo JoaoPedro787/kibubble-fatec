@@ -28,10 +28,12 @@ describe("authService", () => {
     expect(getSession(window.localStorage)).toBeNull();
   });
 
-  it("enforces route guards for unauthenticated, Colaborador, and Gestor users", () => {
-    expect(getRedirectRoute(null, "/")).toBe("/login");
+  it("allows public access on / while enforcing route guards on /login and protected routes", () => {
+    expect(getRedirectRoute(null, "/")).toBeNull();
     expect(getRedirectRoute(null, "/vendas")).toBe("/login");
+    expect(getRedirectRoute(null, "/pedidos")).toBe("/login");
     expect(getRedirectRoute(null, "/estoque")).toBe("/login");
+    expect(getRedirectRoute(null, "/relatorios")).toBe("/login");
     expect(getRedirectRoute(null, "/login")).toBeNull();
 
     const colab = login("Colaborador", window.localStorage);
@@ -40,16 +42,18 @@ describe("authService", () => {
     expect(canAccessRoute(colab.role, "/estoque")).toBe(false);
     expect(canAccessRoute(colab.role, "/relatorios")).toBe(false);
 
-    expect(getRedirectRoute(colab, "/")).toBe("/vendas");
+    expect(getRedirectRoute(colab, "/")).toBeNull();
     expect(getRedirectRoute(colab, "/login")).toBe("/vendas");
     expect(getRedirectRoute(colab, "/estoque")).toBe("/vendas");
     expect(getRedirectRoute(colab, "/relatorios")).toBe("/vendas");
     expect(getRedirectRoute(colab, "/vendas")).toBeNull();
+    expect(getRedirectRoute(colab, "/pedidos")).toBeNull();
 
     const gestor = switchRole("Gestor", window.localStorage);
     expect(canAccessRoute(gestor.role, "/estoque")).toBe(true);
     expect(canAccessRoute(gestor.role, "/relatorios")).toBe(true);
-    expect(getRedirectRoute(gestor, "/")).toBe("/relatorios");
+    expect(getRedirectRoute(gestor, "/")).toBeNull();
+    expect(getRedirectRoute(gestor, "/login")).toBe("/relatorios");
     expect(getRedirectRoute(gestor, "/estoque")).toBeNull();
     expect(getRedirectRoute(gestor, "/relatorios")).toBeNull();
   });

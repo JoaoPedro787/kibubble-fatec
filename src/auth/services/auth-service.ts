@@ -46,12 +46,16 @@ export function getRedirectRoute(
   session: UserSession | null,
   pathname: string,
 ): string | null {
+  if (pathname === "/") {
+    return null;
+  }
+
   if (!session) {
     if (pathname === "/login") return null;
     return "/login";
   }
 
-  if (pathname === "/" || pathname === "/login") {
+  if (pathname === "/login") {
     return ROLE_DEFAULT_ROUTE[session.role];
   }
 
